@@ -1,0 +1,91 @@
+import re
+
+class Interpreter:
+    def __init__(self):
+        self.env = {}
+
+    def tokenize(self, code):
+        tokens = re.findall(r'\(|\)|\w+|\d+|==|!=|>=|<=|>|<|\S', code)
+        return [token for token in tokens if token.strip()]
+
+    def parse(self, tokens):
+        if not tokens:
+            raise SyntaxError("Unexpected EOF")
+        token = tokens.pop(0)
+        if token == '(':
+            expr = []
+            while tokens[0] != ')':
+                expr.append(self.parse(tokens))
+            tokens.pop(0)  # Remove ')'
+            return expr
+        elif token == ')':
+            raise SyntaxError("Unexpected )")
+        else:
+            return token
+
+    def evaluate(self, expr):
+        if isinstance(expr, str):
+            if expr.isdigit():
+                return int(expr)
+            elif expr in self.env:
+                return self.env[expr]
+            else:
+                raise NameError(f"Variable '{expr}' not defined")
+        elif not expr:
+            raise SyntaxError("Empty expression")
+        elif expr[0] == 'let':
+            if len(expr) != 3:
+                raise SyntaxError("Invalid let expression")
+            var = expr[1]
+            value = self.evaluate(expr[2])
+            self.env[var] = value
+            return value
+        elif expr[0] == 'if':
+            if len(expr) != 4:
+                raise SyntaxError("Invalid if expression")
+            condition = self.evaluate(expr[1])
+            if condition:
+                return self.evaluate(expr[2])
+            else:
+                return self.evaluate(expr[3])
+        elif expr[0] in ['==', '!=', '>=', '<=', '>', '<']:
+            if len(expr) != 3:
+                raise SyntaxError("Invalid comparison expression")
+            left = self.evaluate(expr[1])
+            right = self.evaluate(expr[2])
+            if expr[0] == '==':
+                return left == right
+            elif expr[0] == '!=':
+                return left != right
+            elif expr[0] == '>=':
+                return left >= right
+            elif expr[0] == '<=':
+                return left <= right
+            elif expr[0] == '>':
+                return left > right
+            elif expr[0] == '<':
+                return left < right
+        else:
+            raise SyntaxError(f"Unknown expression: {expr[0]}")
+
+    def run(self, code):
+        tokens = self.tokenize(code)
+        parsed = self.parse(tokens)
+        return self.evaluate(parsed)
+
+# Example usage
+interpreter = Interpreter()
+print(interpreter.run("(let x 5)"))  # Output: 5
+print(interpreter.run("(if (== x 5) 10 20)"))  # Output: 10
+print(interpreter.run("(let y (if (== x 5) 15 25))"))  # Output: 15
+print(interpreter.run("y"))  # Output: 15
+
+
+
+
+
+Input:
+"(if (== x 5) 10 20)"
+
+Output:
+10
