@@ -1,0 +1,47 @@
+def nextGreaterWithSameBits(n):
+    if n == 0:
+        return 0
+    
+    # Compute c as the number of trailing 1s and p as the position of the rightmost non-trailing zero
+    c = n
+    c0 = 0
+    c1 = 0
+    
+    # Count trailing 1s
+    while (c & 1) == 1:
+        c1 += 1
+        c >>= 1
+    
+    # Count zeros before trailing 1s
+    while (c != 0) and ((c & 1) == 0):
+        c0 += 1
+        c >>= 1
+    
+    p = c0 + c1  # Position of the rightmost non-trailing zero
+    
+    # If there is no non-trailing zero, return -1 or handle as per requirements
+    if p == 0:
+        return -1  # or some other handling
+    
+    # Flip the rightmost non-trailing zero
+    n |= (1 << p)
+    
+    # Clear all bits to the right of p
+    n &= ~((1 << p) - 1)
+    
+    # Insert (c1 - 1) 1s on the right
+    n |= (1 << (c1 - 1)) - 1
+    
+    return n
+
+
+
+
+
+
+
+Input:
+n = 5  # Binary: 101
+
+Output:
+6
