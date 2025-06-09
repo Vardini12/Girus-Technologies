@@ -1,0 +1,50 @@
+from collections import defaultdict, deque
+
+def alienOrder(words):
+    # Initialize the graph and in-degree count
+    graph = defaultdict(set)
+    in_degree = {c: 0 for word in words for c in word}
+    
+    # Build the graph
+    for i in range(len(words) - 1):
+        word1 = words[i]
+        word2 = words[i + 1]
+        min_len = min(len(word1), len(word2))
+        for j in range(min_len):
+            if word1[j] != word2[j]:
+                if word2[j] not in graph[word1[j]]:
+                    graph[word1[j]].add(word2[j])
+                    in_degree[word2[j]] += 1
+                break
+        else:
+            # Check if the second word is a prefix of the first word
+            if len(word1) > len(word2):
+                return ""
+    
+    # Perform topological sort using Kahn's algorithm
+    queue = deque([c for c in in_degree if in_degree[c] == 0])
+    order = []
+    
+    while queue:
+        current = queue.popleft()
+        order.append(current)
+        for neighbor in graph[current]:
+            in_degree[neighbor] -= 1
+            if in_degree[neighbor] == 0:
+                queue.append(neighbor)
+    
+    # Check for cycles
+    if len(order) != len(in_degree):
+        return ""
+    
+    return ''.join(order)
+
+
+
+
+
+Input:
+words = ["wrt", "wrf", "er", "ett", "rftt"]
+
+Output:
+"wertf"
